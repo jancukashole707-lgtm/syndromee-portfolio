@@ -1,5 +1,5 @@
 import './framer/styles.css'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import HoverFramerComponent from './framer/hover'
 import Hover2FramerComponent from './framer/hover-2'
@@ -11,18 +11,17 @@ const DESIGN_WIDTH = 1200
 const PLAYLIST_URL =
   'https://www.youtube.com/playlist?list=PLCw5X6AnijvlevYduVQcGNlumf6imBHF1'
 
-function useFramerScale() {
-  const [scale, setScale] = useState(1)
+function useZoom() {
+  const [zoom, setZoom] = useState(1)
   useEffect(() => {
     const update = () => {
-      const vw = window.innerWidth
-      setScale(vw < DESIGN_WIDTH ? vw / DESIGN_WIDTH : 1)
+      setZoom(Math.min(window.innerWidth / DESIGN_WIDTH, 1))
     }
     update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
-  return scale
+  return zoom
 }
 
 const buttonStyle: React.CSSProperties = {
@@ -39,11 +38,11 @@ const buttonStyle: React.CSSProperties = {
   cursor: 'pointer',
 }
 
-function Navigation({ scale }: { scale: number }) {
+function Navigation() {
   return (
     <nav
       style={{
-        width: '1200px',
+        width: '100%',
         height: '64px',
         backgroundColor: 'rgb(0, 0, 0)',
         overflow: 'hidden',
@@ -51,11 +50,8 @@ function Navigation({ scale }: { scale: number }) {
         flexDirection: 'row',
         alignItems: 'center',
         gap: '20px',
-        position: 'fixed',
+        position: 'sticky',
         top: 0,
-        left: '50%',
-        transform: `translateX(-50%) scale(${scale})`,
-        transformOrigin: 'top center',
         zIndex: 100,
       }}
     >
@@ -101,44 +97,28 @@ function Navigation({ scale }: { scale: number }) {
 }
 
 export default function App() {
-  const scale = useFramerScale()
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [contentHeight, setContentHeight] = useState<number | undefined>()
-
-  useEffect(() => {
-    if (!contentRef.current) return
-    const observer = new ResizeObserver(([entry]) => {
-      setContentHeight(entry.contentRect.height * scale)
-    })
-    observer.observe(contentRef.current)
-    return () => observer.disconnect()
-  }, [scale])
+  const zoom = useZoom()
 
   return (
-    <div style={{ height: contentHeight, overflow: 'hidden' }}>
     <div
-      ref={contentRef}
       style={{
         width: '1200px',
         margin: '0 auto',
-        backgroundColor: 'white',
+        backgroundColor: 'black',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        transform: `scale(${scale})`,
-        transformOrigin: 'top center',
+        zoom: zoom,
       }}
     >
       {/* Navigation */}
-      <Navigation scale={scale} />
-      {/* Spacer for fixed nav */}
-      <div style={{ width: '100%', height: '64px', flexShrink: 0 }} />
+      <Navigation />
 
       {/* Hero Section */}
       <section
         style={{
           width: '100%',
-          height: '100vh',
+          height: `${100 / zoom}vh`,
           backgroundColor: 'rgb(0, 0, 0)',
           overflow: 'clip',
           position: 'relative',
@@ -147,7 +127,6 @@ export default function App() {
           gap: '4px',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '400px',
         }}
       >
         <span
@@ -626,7 +605,6 @@ export default function App() {
           &copy; 2026 Syndromee
         </span>
       </section>
-    </div>
     </div>
   )
 }
