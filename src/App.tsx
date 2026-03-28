@@ -1,5 +1,6 @@
 import './framer/styles.css'
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 
 import HoverFramerComponent from './framer/hover'
@@ -76,26 +77,45 @@ function Navigation() {
           alignItems: 'center',
         }}
       >
-        {['Works', 'About', 'Contact'].map((label) => (
-          <motion.a
-            key={label}
-            href={`#${label.toLowerCase()}`}
-            style={{
-              fontFamily: '"Boldonse", sans-serif',
-              fontSize: '15px',
-              letterSpacing: '-0.01em',
-              lineHeight: '2em',
-              textAlign: 'center',
-              color: 'rgb(255, 255, 255)',
-              textDecoration: 'none',
-              position: 'relative',
-            }}
-            whileHover={{ opacity: 0.6 }}
-            transition={{ duration: 0.2 }}
-          >
-            {label}
-          </motion.a>
-        ))}
+        {['Works', 'Gallery', 'About', 'Contact'].map((label) =>
+          label === 'Gallery' ? (
+            <motion.div key={label} whileHover={{ opacity: 0.6 }} transition={{ duration: 0.2 }}>
+              <Link
+                to="/gallery"
+                style={{
+                  fontFamily: '"Boldonse", sans-serif',
+                  fontSize: '15px',
+                  letterSpacing: '-0.01em',
+                  lineHeight: '2em',
+                  textAlign: 'center',
+                  color: 'rgb(255, 255, 255)',
+                  textDecoration: 'none',
+                }}
+              >
+                {label}
+              </Link>
+            </motion.div>
+          ) : (
+            <motion.a
+              key={label}
+              href={`#${label.toLowerCase()}`}
+              style={{
+                fontFamily: '"Boldonse", sans-serif',
+                fontSize: '15px',
+                letterSpacing: '-0.01em',
+                lineHeight: '2em',
+                textAlign: 'center',
+                color: 'rgb(255, 255, 255)',
+                textDecoration: 'none',
+                position: 'relative',
+              }}
+              whileHover={{ opacity: 0.6 }}
+              transition={{ duration: 0.2 }}
+            >
+              {label}
+            </motion.a>
+          ),
+        )}
       </div>
       <div
         style={{
@@ -136,28 +156,34 @@ function HeroSection({ zoom }: { zoom: number }) {
       }}
     >
       {/* Main title with parallax */}
-      <motion.span
+      <motion.div
         style={{
           position: 'absolute',
           left: '50%',
           top: '46%',
-          x: '-50%',
-          y: textY,
-          fontFamily: '"ARK-ES", sans-serif',
-          color: 'white',
           zIndex: 1,
-          textAlign: 'center',
-          lineHeight: '0.85em',
-          fontSize: '155px',
-          letterSpacing: '-0.02em',
+          y: textY,
           opacity: textOpacity,
         }}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        syndrome<br />e
-      </motion.span>
+        <span
+          style={{
+            display: 'block',
+            transform: 'translate(-50%, -50%)',
+            fontFamily: '"ARK-ES", sans-serif',
+            color: 'white',
+            textAlign: 'center',
+            lineHeight: '0.85em',
+            fontSize: '155px',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          syndrome<br />e
+        </span>
+      </motion.div>
 
       {/* Scattered text with staggered entrance */}
       {[
