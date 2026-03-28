@@ -10,8 +10,6 @@ import Hover4FramerComponent from './framer/hover-4'
 
 const DESIGN_WIDTH = 1200
 
-const PLAYLIST_URL =
-  'https://www.youtube.com/playlist?list=PLCw5X6AnijvlevYduVQcGNlumf6imBHF1'
 
 function useZoom() {
   const [zoom, setZoom] = useState(1)
@@ -439,37 +437,35 @@ export default function App() {
             =============================================
           */}
 
-          {/* View Full Playlist Button */}
+          {/* View Gallery Button */}
           <Reveal delay={0.2}>
-            <motion.a
-              href={PLAYLIST_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontFamily: '"Boldonse", sans-serif',
-                fontSize: '15px',
-                color: 'white',
-                backgroundColor: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '30px',
-                padding: '12px 32px',
-                textDecoration: 'none',
-                letterSpacing: '-0.01em',
-                cursor: 'pointer',
-                display: 'inline-block',
-                marginTop: '40px',
-                marginBottom: '60px',
-              }}
-              whileHover={{
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderColor: 'rgba(255, 255, 255, 0.6)',
-                scale: 1.05,
-              }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.25 }}
-            >
-              View Full Playlist →
-            </motion.a>
+            <Link to="/gallery" style={{ textDecoration: 'none' }}>
+              <motion.span
+                style={{
+                  fontFamily: '"Boldonse", sans-serif',
+                  fontSize: '15px',
+                  color: 'white',
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '30px',
+                  padding: '12px 32px',
+                  letterSpacing: '-0.01em',
+                  cursor: 'pointer',
+                  display: 'inline-block',
+                  marginTop: '40px',
+                  marginBottom: '60px',
+                }}
+                whileHover={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderColor: 'rgba(255, 255, 255, 0.6)',
+                  scale: 1.05,
+                }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.25 }}
+              >
+                View Gallery →
+              </motion.span>
+            </Link>
           </Reveal>
         </div>
       </section>

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import '../framer/styles.css'
 
 interface Video {
   videoId: string
@@ -13,19 +14,99 @@ interface Video {
 
 const PLAYLIST_ID = 'PLCw5X6AnijvlevYduVQcGNlumf6imBHF1'
 
-function useZoom() {
-  const [zoom, setZoom] = useState(1)
+/* Responsive column count based on actual container width */
+function useColumns() {
+  const [cols, setCols] = useState(3)
   useEffect(() => {
-    const update = () => setZoom(Math.min(window.innerWidth / 1200, 1))
+    const update = () => {
+      const w = window.innerWidth
+      if (w < 500) setCols(1)
+      else if (w < 800) setCols(2)
+      else if (w < 1100) setCols(3)
+      else setCols(4)
+    }
     update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
-  return zoom
+  return cols
+}
+
+/* Thumbnail with fallback chain */
+function Thumbnail({
+  video,
+  isHovered,
+}: {
+  video: Video
+  isHovered: boolean
+}) {
+  const [src, setSrc] = useState(video.thumbnailMax)
+  const [errCount, setErrCount] = useState(0)
+
+  const fallbacks = [
+    `https://i.ytimg.com/vi/${video.videoId}/sddefault.jpg`,
+    `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`,
+    `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`,
+  ]
+
+  return (
+    <motion.img
+      src={src}
+      alt={video.title}
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        display: 'block',
+      }}
+      animate={{ scale: isHovered ? 1.08 : 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      onError={() => {
+        if (errCount < fallbacks.length) {
+          setSrc(fallbacks[errCount])
+          setErrCount((c) => c + 1)
+        }
+      }}
+    />
+  )
+}
+
+/* Video preview that loads on hover with delay */
+function VideoPreview({ videoId }: { videoId: string }) {
+  const [show, setShow] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout>>()
+
+  useEffect(() => {
+    // Small delay before loading iframe to avoid loading on quick mouse passes
+    timer.current = setTimeout(() => setShow(true), 400)
+    return () => {
+      clearTimeout(timer.current)
+      setShow(false)
+    }
+  }, [videoId])
+
+  if (!show) return null
+
+  return (
+    <iframe
+      src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&start=30&loop=1&playlist=${videoId}&showinfo=0&rel=0&iv_load_policy=3&disablekb=1`}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        border: 'none',
+        pointerEvents: 'none',
+        zIndex: 1,
+      }}
+      allow="autoplay; encrypted-media"
+      loading="lazy"
+    />
+  )
 }
 
 export default function Gallery() {
-  const zoom = useZoom()
+  const cols = useColumns()
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -43,13 +124,12 @@ export default function Gallery() {
   return (
     <div
       style={{
-        width: '1200px',
+        width: '100%',
         margin: '0 auto',
         backgroundColor: 'black',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        zoom: zoom,
       }}
     >
       {/* Header */}
@@ -57,7 +137,7 @@ export default function Gallery() {
         style={{
           width: '100%',
           height: '64px',
-          backgroundColor: 'rgb(0, 0, 0)',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
@@ -65,7 +145,6 @@ export default function Gallery() {
           top: 0,
           zIndex: 100,
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
         }}
       >
         <div
@@ -96,7 +175,7 @@ export default function Gallery() {
             { label: 'Contact', to: '/#contact' },
           ].map((item) =>
             item.to.startsWith('/#') ? (
-              <a
+              <motion.a
                 key={item.label}
                 href={item.to}
                 style={{
@@ -107,24 +186,27 @@ export default function Gallery() {
                   color: 'rgba(255,255,255,0.5)',
                   textDecoration: 'none',
                 }}
+                whileHover={{ color: 'rgba(255,255,255,1)' }}
+                transition={{ duration: 0.2 }}
               >
                 {item.label}
-              </a>
+              </motion.a>
             ) : (
-              <Link
-                key={item.label}
-                to={item.to}
-                style={{
-                  fontFamily: '"Boldonse", sans-serif',
-                  fontSize: '15px',
-                  letterSpacing: '-0.01em',
-                  lineHeight: '2em',
-                  color: 'white',
-                  textDecoration: 'none',
-                }}
-              >
-                {item.label}
-              </Link>
+              <motion.div key={item.label} whileHover={{ opacity: 0.6 }} transition={{ duration: 0.2 }}>
+                <Link
+                  to={item.to}
+                  style={{
+                    fontFamily: '"Boldonse", sans-serif',
+                    fontSize: '15px',
+                    letterSpacing: '-0.01em',
+                    lineHeight: '2em',
+                    color: 'white',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {item.label}
+                </Link>
+              </motion.div>
             ),
           )}
         </div>
@@ -133,11 +215,11 @@ export default function Gallery() {
       {/* Page Title */}
       <motion.div
         style={{
-          padding: '60px 40px 40px',
+          padding: '50px 40px 30px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '12px',
+          gap: '8px',
         }}
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -147,7 +229,7 @@ export default function Gallery() {
           style={{
             fontFamily: '"Boldonse", cursive',
             color: 'white',
-            fontSize: '48px',
+            fontSize: '42px',
             margin: 0,
           }}
         >
@@ -156,24 +238,23 @@ export default function Gallery() {
         <p
           style={{
             fontFamily: '"IBM Plex Mono", monospace',
-            color: 'rgba(255,255,255,0.4)',
-            fontSize: '14px',
+            color: 'rgba(255,255,255,0.35)',
+            fontSize: '13px',
             margin: 0,
           }}
         >
-          {loading
-            ? 'Loading playlist...'
-            : `${videos.length} videos from YouTube`}
+          {loading ? 'Loading playlist...' : `${videos.length} works`}
         </p>
       </motion.div>
 
-      {/* Video Grid */}
+      {/* Video Grid — edge to edge, no gaps */}
       {loading ? (
         <div
           style={{
             display: 'flex',
             justifyContent: 'center',
             padding: '80px',
+            flex: 1,
           }}
         >
           <motion.div
@@ -192,152 +273,108 @@ export default function Gallery() {
         <motion.div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '4px',
-            padding: '0 4px 80px',
+            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+            gap: '2px',
+            padding: 0,
+            flex: 1,
           }}
           initial="hidden"
           animate="visible"
           variants={{
-            visible: { transition: { staggerChildren: 0.06 } },
+            visible: { transition: { staggerChildren: 0.04 } },
           }}
         >
-          {videos.map((video) => (
-            <motion.a
-              key={video.videoId}
-              href={video.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                position: 'relative',
-                display: 'block',
-                aspectRatio: '16/9',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                backgroundColor: 'rgb(15,15,15)',
-              }}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 },
-              }}
-              transition={{ duration: 0.5 }}
-              onMouseEnter={() => setHoveredId(video.videoId)}
-              onMouseLeave={() => setHoveredId(null)}
-            >
-              {/* Thumbnail */}
-              <motion.img
-                src={video.thumbnailMax}
-                alt={video.title}
+          {videos.map((video) => {
+            const isHovered = hoveredId === video.videoId
+            return (
+              <motion.a
+                key={video.videoId}
+                href={video.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
+                  position: 'relative',
                   display: 'block',
+                  aspectRatio: '16/9',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  backgroundColor: 'rgb(10,10,10)',
                 }}
-                animate={{
-                  scale: hoveredId === video.videoId ? 1.05 : 1,
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1 },
                 }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-                onError={(e) => {
-                  // Fall back to hqdefault if maxres not available
-                  ;(e.target as HTMLImageElement).src = video.thumbnail
-                }}
-              />
+                transition={{ duration: 0.4 }}
+                onMouseEnter={() => setHoveredId(video.videoId)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                {/* Thumbnail */}
+                <Thumbnail video={video} isHovered={isHovered} />
 
-              {/* Hover overlay */}
-              <AnimatePresence>
-                {hoveredId === video.videoId && (
-                  <motion.div
+                {/* Video preview on hover */}
+                <AnimatePresence>
+                  {isHovered && (
+                    <motion.div
+                      style={{ position: 'absolute', inset: 0, zIndex: 1 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <VideoPreview videoId={video.videoId} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Title overlay — always visible at bottom */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background:
+                      'linear-gradient(transparent, rgba(0,0,0,0.75))',
+                    padding: '24px 12px 10px',
+                    zIndex: 2,
+                    pointerEvents: 'none',
+                    opacity: isHovered ? 1 : 0,
+                    transition: 'opacity 0.3s',
+                  }}
+                >
+                  <span
                     style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background:
-                        'linear-gradient(transparent 40%, rgba(0,0,0,0.85) 100%)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'flex-end',
-                      padding: '16px',
+                      fontFamily: '"IBM Plex Mono", monospace',
+                      color: 'white',
+                      fontSize: '12px',
+                      lineHeight: '1.4em',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
                     }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.25 }}
                   >
-                    <span
-                      style={{
-                        fontFamily: '"IBM Plex Mono", monospace',
-                        color: 'white',
-                        fontSize: '13px',
-                        lineHeight: '1.4em',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {video.title}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: '"IBM Plex Mono", monospace',
-                        color: 'rgba(255,255,255,0.4)',
-                        fontSize: '11px',
-                        marginTop: '4px',
-                      }}
-                    >
-                      {new Date(video.published).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                      })}
-                    </span>
-
-                    {/* Play icon */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -60%)',
-                      }}
-                    >
-                      <svg
-                        width="48"
-                        height="48"
-                        viewBox="0 0 48 48"
-                        fill="none"
-                      >
-                        <circle
-                          cx="24"
-                          cy="24"
-                          r="23"
-                          stroke="white"
-                          strokeWidth="2"
-                          opacity="0.8"
-                        />
-                        <path d="M20 16L34 24L20 32V16Z" fill="white" opacity="0.9" />
-                      </svg>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.a>
-          ))}
+                    {video.title}
+                  </span>
+                </div>
+              </motion.a>
+            )
+          })}
         </motion.div>
       )}
 
       {/* Footer */}
       <div
         style={{
-          padding: '40px',
+          padding: '30px',
           textAlign: 'center',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
         }}
       >
         <span
           style={{
             fontFamily: '"IBM Plex Mono", monospace',
-            color: 'rgba(255,255,255,0.2)',
-            fontSize: '12px',
+            color: 'rgba(255,255,255,0.15)',
+            fontSize: '11px',
           }}
         >
           &copy; 2026 Syndromee
