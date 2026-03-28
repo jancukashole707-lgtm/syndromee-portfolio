@@ -32,7 +32,7 @@ function useColumns() {
   return cols
 }
 
-/* Thumbnail with fallback chain */
+/* Thumbnail — start with hqdefault (always works), try upgrade to maxres */
 function Thumbnail({
   video,
   isHovered,
@@ -40,16 +40,20 @@ function Thumbnail({
   video: Video
   isHovered: boolean
 }) {
-  const [src, setSrc] = useState(video.thumbnailMax)
-  const [errCount, setErrCount] = useState(0)
+  // Start with hqdefault which is guaranteed to work for all videos
+  const hqSrc = `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`
+  const [src, setSrc] = useState(hqSrc)
 
-  const fallbacks = [
-    `https://i.ytimg.com/vi/${video.videoId}/sddefault.jpg`,
-    `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`,
-    `https://img.youtube.com/vi/${video.videoId}/0.jpg`,
-    `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`,
-    `https://img.youtube.com/vi/${video.videoId}/default.jpg`,
-  ]
+  useEffect(() => {
+    // Try to upgrade to maxres in background
+    const maxres = `https://i.ytimg.com/vi/${video.videoId}/maxresdefault.jpg`
+    const img = new Image()
+    img.onload = () => {
+      // Only upgrade if the image is actually high-res (not a placeholder)
+      if (img.naturalWidth > 200) setSrc(maxres)
+    }
+    img.src = maxres
+  }, [video.videoId])
 
   return (
     <motion.img
@@ -63,12 +67,7 @@ function Thumbnail({
       }}
       animate={{ scale: isHovered ? 1.08 : 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      onError={() => {
-        if (errCount < fallbacks.length) {
-          setSrc(fallbacks[errCount])
-          setErrCount((c) => c + 1)
-        }
-      }}
+      onError={() => setSrc(hqSrc)}
     />
   )
 }

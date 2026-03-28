@@ -1,5 +1,5 @@
 import './framer/styles.css'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 
@@ -11,17 +11,6 @@ import Hover4FramerComponent from './framer/hover-4'
 const DESIGN_WIDTH = 1200
 const HEADING_FONT = '"Space Grotesk", sans-serif'
 
-const ACCENT_COLORS = [
-  '#ff3c78', '#00e5ff', '#ffe600', '#b388ff',
-  '#76ff03', '#ff6e40', '#40c4ff', '#ff80ab',
-  '#69f0ae', '#ea80fc', '#ffab40', '#18ffff',
-  '#f4ff81', '#ff5252', '#448aff', '#b2ff59',
-]
-
-function seededRandom(seed: number) {
-  const x = Math.sin(seed * 9301 + 49297) * 233280
-  return x - Math.floor(x)
-}
 
 function useZoom() {
   const [zoom, setZoom] = useState(1)
@@ -148,17 +137,15 @@ function Navigation() {
   )
 }
 
-/* Scattered "Syndromee" text with hover animation and random color */
+/* Scattered "Syndromee" text with hover glow */
 function ScatteredText({
   left,
   top,
   delay,
-  color,
 }: {
   left: string
   top: string
   delay: number
-  color: string
 }) {
   return (
     <motion.span
@@ -168,7 +155,7 @@ function ScatteredText({
         top,
         transform: 'translate(-50%, -50%)',
         fontFamily: '"IBM Plex Mono", monospace',
-        color,
+        color: 'white',
         whiteSpace: 'nowrap',
         zIndex: 1,
         fontSize: '14px',
@@ -176,12 +163,12 @@ function ScatteredText({
         userSelect: 'none',
       }}
       initial={{ opacity: 0 }}
-      animate={{ opacity: 0.7 }}
+      animate={{ opacity: 0.6 }}
       transition={{ duration: 0.8, delay }}
       whileHover={{
-        scale: 1.4,
+        scale: 1.3,
         opacity: 1,
-        textShadow: `0 0 20px ${color}, 0 0 40px ${color}`,
+        textShadow: '0 0 15px rgba(255,255,255,0.6), 0 0 30px rgba(255,255,255,0.3)',
       }}
     >
       Syndromee
@@ -198,32 +185,12 @@ function HeroSection({ zoom }: { zoom: number }) {
   const textY = useTransform(scrollYProgress, [0, 1], [0, 150])
   const textOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
 
-  // Generate scattered positions with seeded random for consistency
-  const scattered = useMemo(() => {
-    const positions = [
-      { left: '63%', top: '18%' },
-      { left: '18%', top: '58%' },
-      { left: '30%', top: '16%' },
-      { left: '82%', top: '66%' },
-      { left: '10%', top: '22%' },
-      { left: '88%', top: '35%' },
-      { left: '72%', top: '82%' },
-      { left: '40%', top: '85%' },
-      { left: '8%', top: '78%' },
-      { left: '55%', top: '10%' },
-      { left: '92%', top: '15%' },
-      { left: '15%', top: '40%' },
-      { left: '75%', top: '50%' },
-      { left: '45%', top: '70%' },
-      { left: '25%', top: '90%' },
-      { left: '65%', top: '92%' },
-    ]
-    return positions.map((pos, i) => ({
-      ...pos,
-      delay: 0.2 + i * 0.08,
-      color: ACCENT_COLORS[Math.floor(seededRandom(i + 7) * ACCENT_COLORS.length)],
-    }))
-  }, [])
+  const scattered = [
+    { left: '63%', top: '18%', delay: 0.3 },
+    { left: '18%', top: '58%', delay: 0.5 },
+    { left: '30%', top: '16%', delay: 0.4 },
+    { left: '82%', top: '66%', delay: 0.6 },
+  ]
 
   return (
     <section
