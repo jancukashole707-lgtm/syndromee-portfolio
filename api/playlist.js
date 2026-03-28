@@ -37,7 +37,7 @@ export default async function handler(req, res) {
           title: decodeXml(title),
           published,
           description: decodeXml(description).slice(0, 200),
-          thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+          thumbnail: `https://img.youtube.com/vi/${videoId}/0.jpg`,
           thumbnailMax: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
           url: `https://www.youtube.com/watch?v=${videoId}&list=${playlistId}`,
         })

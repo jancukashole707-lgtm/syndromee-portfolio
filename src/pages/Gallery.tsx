@@ -46,7 +46,9 @@ function Thumbnail({
   const fallbacks = [
     `https://i.ytimg.com/vi/${video.videoId}/sddefault.jpg`,
     `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`,
+    `https://img.youtube.com/vi/${video.videoId}/0.jpg`,
     `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`,
+    `https://img.youtube.com/vi/${video.videoId}/default.jpg`,
   ]
 
   return (
@@ -170,16 +172,17 @@ export default function Gallery() {
           </Link>
           {[
             { label: 'Works', to: '/#works' },
-            { label: 'Gallery', to: '/gallery' },
             { label: 'About', to: '/#about' },
             { label: 'Contact', to: '/#contact' },
+            { label: 'Gallery', to: '/gallery' },
           ].map((item) =>
             item.to.startsWith('/#') ? (
               <motion.a
                 key={item.label}
                 href={item.to}
                 style={{
-                  fontFamily: '"Boldonse", sans-serif',
+                  fontFamily: '"Space Grotesk", sans-serif',
+                  fontWeight: 600,
                   fontSize: '15px',
                   letterSpacing: '-0.01em',
                   lineHeight: '2em',
@@ -196,7 +199,8 @@ export default function Gallery() {
                 <Link
                   to={item.to}
                   style={{
-                    fontFamily: '"Boldonse", sans-serif',
+                    fontFamily: '"Space Grotesk", sans-serif',
+                  fontWeight: 600,
                     fontSize: '15px',
                     letterSpacing: '-0.01em',
                     lineHeight: '2em',
@@ -227,7 +231,9 @@ export default function Gallery() {
       >
         <h1
           style={{
-            fontFamily: '"Boldonse", cursive',
+            fontFamily: '"Space Grotesk", sans-serif',
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
             color: 'white',
             fontSize: '42px',
             margin: 0,

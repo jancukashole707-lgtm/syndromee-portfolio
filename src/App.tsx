@@ -1,5 +1,5 @@
 import './framer/styles.css'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 
@@ -9,14 +9,24 @@ import Hover3FramerComponent from './framer/hover-3'
 import Hover4FramerComponent from './framer/hover-4'
 
 const DESIGN_WIDTH = 1200
+const HEADING_FONT = '"Space Grotesk", sans-serif'
 
+const ACCENT_COLORS = [
+  '#ff3c78', '#00e5ff', '#ffe600', '#b388ff',
+  '#76ff03', '#ff6e40', '#40c4ff', '#ff80ab',
+  '#69f0ae', '#ea80fc', '#ffab40', '#18ffff',
+  '#f4ff81', '#ff5252', '#448aff', '#b2ff59',
+]
+
+function seededRandom(seed: number) {
+  const x = Math.sin(seed * 9301 + 49297) * 233280
+  return x - Math.floor(x)
+}
 
 function useZoom() {
   const [zoom, setZoom] = useState(1)
   useEffect(() => {
-    const update = () => {
-      setZoom(Math.min(window.innerWidth / DESIGN_WIDTH, 1))
-    }
+    const update = () => setZoom(Math.min(window.innerWidth / DESIGN_WIDTH, 1))
     update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
@@ -24,7 +34,6 @@ function useZoom() {
   return zoom
 }
 
-/* Fade-up wrapper — children animate in when scrolled into view */
 function Reveal({
   children,
   delay = 0,
@@ -49,6 +58,13 @@ function Reveal({
 }
 
 function Navigation() {
+  const navItems = [
+    { label: 'Works', href: '#works' },
+    { label: 'About', href: '#about' },
+    { label: 'Contact', href: '#contact' },
+    { label: 'Gallery', to: '/gallery' },
+  ]
+
   return (
     <nav
       style={{
@@ -69,48 +85,51 @@ function Navigation() {
       <div
         style={{
           display: 'flex',
-          gap: '20px',
+          gap: '24px',
           marginLeft: 'auto',
           marginRight: 'auto',
           alignItems: 'center',
         }}
       >
-        {['Works', 'Gallery', 'About', 'Contact'].map((label) =>
-          label === 'Gallery' ? (
-            <motion.div key={label} whileHover={{ opacity: 0.6 }} transition={{ duration: 0.2 }}>
+        {navItems.map((item) =>
+          'to' in item && item.to ? (
+            <motion.div key={item.label} whileHover={{ opacity: 0.6 }} transition={{ duration: 0.2 }}>
               <Link
-                to="/gallery"
+                to={item.to}
                 style={{
-                  fontFamily: '"Boldonse", sans-serif',
-                  fontSize: '15px',
-                  letterSpacing: '-0.01em',
+                  fontFamily: HEADING_FONT,
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase' as const,
                   lineHeight: '2em',
                   textAlign: 'center',
                   color: 'rgb(255, 255, 255)',
                   textDecoration: 'none',
                 }}
               >
-                {label}
+                {item.label}
               </Link>
             </motion.div>
           ) : (
             <motion.a
-              key={label}
-              href={`#${label.toLowerCase()}`}
+              key={item.label}
+              href={item.href}
               style={{
-                fontFamily: '"Boldonse", sans-serif',
-                fontSize: '15px',
-                letterSpacing: '-0.01em',
+                fontFamily: HEADING_FONT,
+                fontSize: '14px',
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase' as const,
                 lineHeight: '2em',
                 textAlign: 'center',
                 color: 'rgb(255, 255, 255)',
                 textDecoration: 'none',
-                position: 'relative',
               }}
               whileHover={{ opacity: 0.6 }}
               transition={{ duration: 0.2 }}
             >
-              {label}
+              {item.label}
             </motion.a>
           ),
         )}
@@ -129,6 +148,47 @@ function Navigation() {
   )
 }
 
+/* Scattered "Syndromee" text with hover animation and random color */
+function ScatteredText({
+  left,
+  top,
+  delay,
+  color,
+}: {
+  left: string
+  top: string
+  delay: number
+  color: string
+}) {
+  return (
+    <motion.span
+      style={{
+        position: 'absolute',
+        left,
+        top,
+        transform: 'translate(-50%, -50%)',
+        fontFamily: '"IBM Plex Mono", monospace',
+        color,
+        whiteSpace: 'nowrap',
+        zIndex: 1,
+        fontSize: '14px',
+        cursor: 'default',
+        userSelect: 'none',
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.7 }}
+      transition={{ duration: 0.8, delay }}
+      whileHover={{
+        scale: 1.4,
+        opacity: 1,
+        textShadow: `0 0 20px ${color}, 0 0 40px ${color}`,
+      }}
+    >
+      Syndromee
+    </motion.span>
+  )
+}
+
 function HeroSection({ zoom }: { zoom: number }) {
   const ref = useRef(null)
   const { scrollYProgress } = useScroll({
@@ -137,6 +197,33 @@ function HeroSection({ zoom }: { zoom: number }) {
   })
   const textY = useTransform(scrollYProgress, [0, 1], [0, 150])
   const textOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+
+  // Generate scattered positions with seeded random for consistency
+  const scattered = useMemo(() => {
+    const positions = [
+      { left: '63%', top: '18%' },
+      { left: '18%', top: '58%' },
+      { left: '30%', top: '16%' },
+      { left: '82%', top: '66%' },
+      { left: '10%', top: '22%' },
+      { left: '88%', top: '35%' },
+      { left: '72%', top: '82%' },
+      { left: '40%', top: '85%' },
+      { left: '8%', top: '78%' },
+      { left: '55%', top: '10%' },
+      { left: '92%', top: '15%' },
+      { left: '15%', top: '40%' },
+      { left: '75%', top: '50%' },
+      { left: '45%', top: '70%' },
+      { left: '25%', top: '90%' },
+      { left: '65%', top: '92%' },
+    ]
+    return positions.map((pos, i) => ({
+      ...pos,
+      delay: 0.2 + i * 0.08,
+      color: ACCENT_COLORS[Math.floor(seededRandom(i + 7) * ACCENT_COLORS.length)],
+    }))
+  }, [])
 
   return (
     <section
@@ -153,13 +240,17 @@ function HeroSection({ zoom }: { zoom: number }) {
         alignItems: 'center',
       }}
     >
-      {/* Main title with parallax */}
+      {/* Main title with parallax — centered */}
       <motion.div
         style={{
           position: 'absolute',
-          left: '50%',
+          left: 0,
+          right: 0,
           top: '46%',
+          transform: 'translateY(-50%)',
           zIndex: 1,
+          display: 'flex',
+          justifyContent: 'center',
           y: textY,
           opacity: textOpacity,
         }}
@@ -169,8 +260,6 @@ function HeroSection({ zoom }: { zoom: number }) {
       >
         <span
           style={{
-            display: 'block',
-            transform: 'translate(-50%, -50%)',
             fontFamily: '"ARK-ES", sans-serif',
             color: 'white',
             textAlign: 'center',
@@ -183,51 +272,37 @@ function HeroSection({ zoom }: { zoom: number }) {
         </span>
       </motion.div>
 
-      {/* Scattered text with staggered entrance */}
-      {[
-        { left: '63%', top: '18%', delay: 0.3 },
-        { left: '18%', top: '58%', delay: 0.5 },
-        { left: '30%', top: '16%', delay: 0.4 },
-        { left: '82%', top: '66%', delay: 0.6 },
-      ].map((pos, i) => (
-        <motion.span
-          key={i}
-          style={{
-            position: 'absolute',
-            left: pos.left,
-            top: pos.top,
-            transform: 'translate(-50%, -50%)',
-            fontFamily: '"IBM Plex Mono", monospace',
-            color: 'white',
-            whiteSpace: 'nowrap',
-            zIndex: 1,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: pos.delay }}
-        >
-          Syndromee
-        </motion.span>
+      {/* Scattered text — more of them, random colors, hover glow */}
+      {scattered.map((pos, i) => (
+        <ScatteredText key={i} {...pos} />
       ))}
 
-      {/* "motion designer" */}
-      <motion.span
+      {/* "motion designer" — centered */}
+      <motion.div
         style={{
           position: 'absolute',
-          left: '50%',
+          left: 0,
+          right: 0,
           top: '78%',
-          transform: 'translate(-50%, -50%)',
-          fontFamily: '"IBM Plex Mono", monospace',
-          color: 'white',
-          whiteSpace: 'nowrap',
+          transform: 'translateY(-50%)',
           zIndex: 1,
+          display: 'flex',
+          justifyContent: 'center',
         }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.7 }}
       >
-        motion designer
-      </motion.span>
+        <span
+          style={{
+            fontFamily: '"IBM Plex Mono", monospace',
+            color: 'white',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          motion designer
+        </span>
+      </motion.div>
 
       {/* Scroll indicator */}
       <motion.div
@@ -274,10 +349,7 @@ export default function App() {
         zoom: zoom,
       }}
     >
-      {/* Navigation */}
       <Navigation />
-
-      {/* Hero Section */}
       <HeroSection zoom={zoom} />
 
       {/* Works Section */}
@@ -308,17 +380,18 @@ export default function App() {
           <Reveal>
             <h2
               style={{
-                fontFamily: '"Boldonse", cursive',
+                fontFamily: HEADING_FONT,
+                fontWeight: 700,
                 color: 'white',
-                fontSize: '48px',
+                fontSize: '42px',
                 textAlign: 'center',
+                letterSpacing: '-0.02em',
               }}
             >
-              WORKS
+              Works
             </h2>
           </Reveal>
 
-          {/* Hover Card 1 (hover) */}
           <Reveal delay={0.1}>
             <motion.a
               href="https://www.youtube.com/watch?v=4cYzLcWt0nY&list=PLCw5X6AnijvlevYduVQcGNlumf6imBHF1&index=3"
@@ -348,7 +421,6 @@ export default function App() {
             </motion.a>
           </Reveal>
 
-          {/* Hover Card 2 (hover-4) */}
           <Reveal delay={0.1}>
             <motion.a
               href="https://www.youtube.com/watch?v=XvoUXcYoagU&list=PLCw5X6AnijvlevYduVQcGNlumf6imBHF1&index=4"
@@ -378,7 +450,6 @@ export default function App() {
             </motion.a>
           </Reveal>
 
-          {/* Hover Card 3 (hover-3) */}
           <Reveal delay={0.1}>
             <motion.div
               style={{ width: '1200px', height: '304px' }}
@@ -392,7 +463,6 @@ export default function App() {
             </motion.div>
           </Reveal>
 
-          {/* Hover Card 4 (hover-2) */}
           <Reveal delay={0.1}>
             <motion.a
               href="https://www.youtube.com/watch?v=SccovzmKXPc&list=PLCw5X6AnijvlevYduVQcGNlumf6imBHF1&index=5"
@@ -422,34 +492,20 @@ export default function App() {
             </motion.a>
           </Reveal>
 
-          {/*
-            =============================================
-            TO ADD MORE HOVER CARDS (5th, 6th, etc.):
-            =============================================
-            1. Create a new HOVER component in Framer (duplicate one of the existing ones)
-            2. Re-export components by running in terminal:
-                 cd example-framer-app && npm run framer
-            3. A new file like hover-5.jsx will appear in src/framer/
-            4. Import it at the top of this file:
-                 import Hover5FramerComponent from './framer/hover-5'
-            5. Wrap in <Reveal delay={0.1}><motion.a whileHover={{ scale: 1.015 }}> ... </motion.a></Reveal>
-               like the cards above
-            =============================================
-          */}
-
-          {/* View Gallery Button */}
           <Reveal delay={0.2}>
             <Link to="/gallery" style={{ textDecoration: 'none' }}>
               <motion.span
                 style={{
-                  fontFamily: '"Boldonse", sans-serif',
-                  fontSize: '15px',
+                  fontFamily: HEADING_FONT,
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
                   color: 'white',
                   backgroundColor: 'transparent',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '30px',
                   padding: '12px 32px',
-                  letterSpacing: '-0.01em',
                   cursor: 'pointer',
                   display: 'inline-block',
                   marginTop: '40px',
@@ -487,14 +543,16 @@ export default function App() {
         <Reveal>
           <h2
             style={{
-              fontFamily: '"Boldonse", cursive',
+              fontFamily: HEADING_FONT,
+              fontWeight: 700,
               color: 'white',
-              fontSize: '48px',
+              fontSize: '42px',
               margin: 0,
               textAlign: 'center',
+              letterSpacing: '-0.02em',
             }}
           >
-            ABOUT
+            About
           </h2>
         </Reveal>
 
@@ -506,7 +564,6 @@ export default function App() {
             width: '100%',
           }}
         >
-          {/* Profile Image Placeholder */}
           <Reveal delay={0.1}>
             <div
               style={{
@@ -593,7 +650,7 @@ export default function App() {
                 }}
               >
                 {['Motion Design', 'After Effects', 'Cinema 4D', 'Video Editing'].map(
-                  (skill, i) => (
+                  (skill) => (
                     <motion.span
                       key={skill}
                       style={{
@@ -638,14 +695,16 @@ export default function App() {
         <Reveal>
           <h2
             style={{
-              fontFamily: '"Boldonse", cursive',
+              fontFamily: HEADING_FONT,
+              fontWeight: 700,
               color: 'white',
-              fontSize: '48px',
+              fontSize: '42px',
               margin: 0,
               textAlign: 'center',
+              letterSpacing: '-0.02em',
             }}
           >
-            CONTACT
+            Contact
           </h2>
         </Reveal>
 
@@ -683,9 +742,10 @@ export default function App() {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  fontFamily: '"Boldonse", sans-serif',
+                  fontFamily: HEADING_FONT,
+                  fontWeight: 600,
                   color: 'white',
-                  fontSize: '24px',
+                  fontSize: '22px',
                   textDecoration: 'none',
                   letterSpacing: '-0.01em',
                   display: 'block',
